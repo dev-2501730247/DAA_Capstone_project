@@ -1,5 +1,10 @@
 """
-Mini-Courier Planner  --  DAA Capstone (ETCCDA302)
+Name        : Dev Kaushik
+Roll Number : 2501730247
+Programme   : B.Tech CSE (AI & ML), Section B
+Course      : Design & Analysis of Algorithms (ETCCDA302)
+Faculty     : Ankita Gupta
+Project     : Capstone Assignment - Mini-Courier Planner
 
 Pipeline:
   1. Sort parcels by deadline / priority      (Merge Sort, O(n log n))

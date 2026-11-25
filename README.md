@@ -1,17 +1,38 @@
-# Mini-Courier Planner (DAA Capstone, ETCCDA302)
+# Mini-Courier Planner
 
-An integrated Python prototype that, given parcels and a city road graph, produces a prioritized parcel order, an optimal packing plan for one trip, and a delivery route.
+**DAA Capstone Assignment (ETCCDA302), K.R. Mangalam University, Gurugram**
+
+| | |
+|---|---|
+| **Student** | Dev Kaushik |
+| **Roll Number** | 2501730247 |
+| **Programme** | B.Tech CSE (AI & ML), Section B |
+| **Faculty** | Ankita Gupta |
+| **Language** | Python 3 |
+
+An integrated Python prototype that, given parcels and a city road graph, produces a prioritized parcel order, an optimal packing plan for one trip, and a delivery route. It combines merge sort, 0/1 knapsack dynamic programming, Dijkstra's algorithm and nearest-neighbor TSP approximation, and measures the runtime of each step.
+
+## Repository contents
+
+| File / folder | Purpose |
+|---|---|
+| `courier_planner.py` | Complete source code (all algorithms, demo and benchmark) |
+| `sample_dataset.json` | Sample dataset (graph, parcels, capacity) saved by the demo |
+| `output_trace.txt` | Console output trace of a full run |
+| `runtime_chart.png` | Runtime chart of all pipeline steps and sort comparison |
+| `screenshots/` | Terminal output screenshots |
+| `Mini-Courier-Planner-Report.pdf` | Final project report |
 
 ## Execution steps
 
 ```
-pip install matplotlib        # only needed for the runtime chart
-python courier_planner.py demo        # small dataset, full trace
-python courier_planner.py benchmark   # runtime tests + runtime_chart.png
-python courier_planner.py all         # both
+pip install matplotlib                 # only needed for the runtime chart
+python3 courier_planner.py demo        # small dataset, full trace
+python3 courier_planner.py benchmark   # runtime tests + runtime_chart.png
+python3 courier_planner.py all         # both
 ```
 
-Outputs: `output_trace.txt` (console trace), `runtime_chart.png`, `sample_dataset.json`.
+Running `demo` also writes `sample_dataset.json`; running `benchmark` writes `runtime_chart.png`.
 
 ## Phase 1: Design
 
@@ -37,40 +58,48 @@ Parcels --> Merge Sort (deadline, priority) --> 0/1 Knapsack DP (truck capacity)
 | Route | Nearest-Neighbor TSP | TSP is NP-hard; greedy gives a fast approximation | O(k^2) |
 
 ## Phase 2: Sorting and packing
-Parcels are sorted earliest-deadline-first, ties broken by higher priority. The knapsack maximizes total priority value within the weight limit; the DP table is printed and chosen parcels are recovered by backtracking.
 
-Demo result: capacity 30 kg, selected parcels 8, 11, 12 with total value 287 and weight 28 kg.
+Parcels are sorted earliest-deadline-first, ties broken by higher priority. The knapsack maximizes total priority value within the weight limit; the DP table is printed and the chosen parcels are recovered by backtracking.
+
+**Demo result:** capacity 30 kg, selected parcels 8, 11 and 12 with total priority value 287 and total weight 28 kg.
 
 ## Phase 3: Graph and route
+
 Dijkstra gives shortest paths from the depot to each stop. A distance matrix between all stops feeds Nearest-Neighbor TSP, which returns to the depot.
 
-Demo result: route `[0, 7, 1, 8, 0]`, length 40 km. Brute force confirms the optimum is also 40 km (ratio 1.000).
+**Demo result:** route `[0, 7, 1, 8, 0]`, length 40 km. Brute force confirms the optimum is also 40 km (approximation ratio 1.000).
 
 ## Phase 4: Performance testing
 
-| Parcels | Nodes | Sort (ms) | Knapsack (ms) | Dijkstra (ms) | TSP (ms) |
-|---|---|---|---|---|---|
-| 10 | 20 | 0.011 | 0.018 | 0.059 | 0.006 |
-| 100 | 50 | 0.110 | 1.812 | 1.020 | 0.033 |
-| 500 | 250 | 0.773 | 54.908 | 29.154 | 0.733 |
-| 1000 | 500 | 1.555 | 234.888 | 126.542 | 2.891 |
+Runtimes in milliseconds:
 
-See `runtime_chart.png`. Times vary by machine.
+| Parcels | Nodes | Capacity | Sort | Knapsack | Dijkstra | TSP | Stops | Route km |
+|---|---|---|---|---|---|---|---|---|
+| 10 | 20 | 20 | 0.035 | 0.055 | 0.215 | 0.019 | 5 | 69 |
+| 50 | 25 | 100 | 0.135 | 0.899 | 0.692 | 0.045 | 16 | 184 |
+| 100 | 50 | 200 | 0.219 | 5.576 | 3.226 | 0.121 | 30 | 328 |
+| 200 | 100 | 400 | 1.066 | 16.500 | 8.539 | 0.246 | 61 | 604 |
+| 500 | 250 | 1000 | 1.793 | 158.170 | 130.964 | 5.018 | 145 | 1474 |
+| 1000 | 500 | 2000 | 6.302 | 535.916 | 268.340 | 5.273 | 280 | 2544 |
+
+See `runtime_chart.png`. Exact times vary by machine; the growth trend is what matters.
+
+**Correctness checks** (asserted in the benchmark): sorted order is correct, capacity is never exceeded, and the route starts and ends at the depot and visits every stop once. All checks passed.
 
 **Observations**
 - Knapsack dominates because the table has n*W cells and W grows with n; Dijkstra is second because it runs once per stop.
-- Merge sort vs insertion sort at n=2000: about 3 ms vs 112 ms, confirming O(n log n) vs O(n^2).
-- Nearest-Neighbor on 8-stop instances averaged 1.07x the optimal route length (worst 1.145).
-- Correctness checks (asserted in the benchmark): sorted order is correct, capacity is never exceeded, route starts and ends at the depot and visits every stop once.
+- Sorting and TSP stay fast even at 1000 parcels / 280 stops.
+- Merge sort vs insertion sort at n = 2000: about 8.9 ms vs 245.5 ms, confirming O(n log n) vs O(n^2).
+- Nearest-Neighbor on 8-stop instances averaged 1.07x the optimal route length (worst case 1.145).
 
 **Future optimizations**
-- Knapsack: use a 1-D DP array (O(W) space), or scale/bucket weights.
+- Knapsack: use a 1-D DP array (O(W) space), or scale/bucket weights to shrink W.
 - Dijkstra: run only between required stops, cache results, or use A* for single pairs.
 - Route quality: apply 2-opt improvement after Nearest-Neighbor, or use Christofides (1.5-approximation).
 - Honor deadlines inside the route (time windows) and split parcels across multiple trips.
 
-## Phase 5: Notes for demonstration
-- Be ready to trace the knapsack table and Dijkstra on the demo graph.
-- Know why Nearest-Neighbor is not optimal: it never looks ahead and the last leg back to the depot can be long.
-- Add your own screenshots of the terminal output and `runtime_chart.png` to the submission.
-# DAA_Capstone_project
+## Phase 5: Results and demonstration
+
+- Screenshots of the terminal output are in the `screenshots/` folder.
+- Full explanation of results, tables and figures is in `Mini-Courier-Planner-Report.pdf`.
+- Nearest-Neighbor is not optimal because it never looks ahead and the last leg back to the depot can be long; the 8-stop tests above quantify this.

@@ -1,0 +1,102 @@
+============================================================ 
+DEMO: small dataset (10 nodes, 12 parcels, capacity 30 kg)
+============================================================
+
+City graph (node: [(neighbor, km), ...])
+  0: [(1, 5), (3, 18), (4, 12), (7, 3), (9, 4)]
+  1: [(0, 5), (2, 2), (9, 8), (8, 14), (5, 18)]
+  2: [(1, 2), (8, 10), (6, 18), (3, 3)]
+  3: [(0, 18), (9, 2), (2, 3)]
+  4: [(0, 12), (5, 2), (6, 7), (9, 17)]
+  5: [(4, 2), (1, 18), (7, 15)]
+  6: [(4, 7), (8, 14), (2, 18)]
+  7: [(0, 3), (9, 15), (5, 15)]
+  8: [(6, 14), (1, 14), (2, 10)]
+  9: [(1, 8), (0, 4), (3, 2), (7, 15), (4, 17)]
+
+All parcels (input)
+  ID  Dest   Wt  Value  Deadline
+   1     4   10     70         9
+   2     6   15     78        31
+   3     2   10      2        31
+   4     5    9     30        13
+   5     8    9     71        31
+   6     7   11     20        15
+   7     3   14     67        25
+   8     1   11    100         5
+   9     3   13     76         3
+  10     5   13      4        18
+  11     8   10     93        25
+  12     7    7     94        37
+
+Sorted by deadline, then priority (Merge Sort)
+  ID  Dest   Wt  Value  Deadline
+   9     3   13     76         3
+   8     1   11    100         5
+   1     4   10     70         9
+   4     5    9     30        13
+   6     7   11     20        15
+  10     5   13      4        18
+  11     8   10     93        25
+   7     3   14     67        25
+   2     6   15     78        31
+   5     8    9     71        31
+   3     2   10      2        31
+  12     7    7     94        37
+
+Knapsack DP: capacity = 30 kg
+DP table (last rows, columns = capacity 0..30):
+  i= 9: [0, 0, 0, 0, 0, 0, 0, 0, 0, 30, 93, 100, 100, 100, 100, 100, 100, 100, 100, 123, 163, 193, 193, 193, 193, 193, 193, 193, 193, 193, 223]
+  i=10: [0, 0, 0, 0, 0, 0, 0, 0, 0, 71, 93, 100, 100, 100, 100, 100, 100, 100, 101, 164, 171, 193, 193, 193, 193, 193, 193, 193, 194, 234, 264]
+  i=11: [0, 0, 0, 0, 0, 0, 0, 0, 0, 71, 93, 100, 100, 100, 100, 100, 100, 100, 101, 164, 171, 193, 193, 193, 193, 193, 193, 193, 194, 234, 264]
+  i=12: [0, 0, 0, 0, 0, 0, 0, 94, 94, 94, 94, 100, 100, 100, 100, 100, 165, 187, 194, 194, 194, 194, 194, 194, 194, 195, 258, 265, 287, 287, 287]
+Best total priority value = 287
+
+Selected parcels for this trip
+  ID  Dest   Wt  Value  Deadline
+   8     1   11    100         5
+  11     8   10     93        25
+  12     7    7     94        37
+Total weight = 28 kg
+
+Delivery stops (incl. depot): [0, 1, 7, 8]
+
+Shortest paths from depot (Dijkstra):
+  0 -> 1: dist=5, path=[0, 1]
+  0 -> 7: dist=3, path=[0, 7]
+  0 -> 8: dist=17, path=[0, 1, 2, 8]
+
+Nearest-Neighbor route: [0, 7, 1, 8, 0]
+Full road path        : [0, 7, 0, 1, 2, 8, 2, 1, 0]
+Route length          : 40 km
+Optimal (brute force) : [0, 1, 8, 7, 0] length=40 km
+Approximation ratio   : 1.000
+
+Saved sample_dataset.json
+============================================================ 
+BENCHMARK
+============================================================
+ parcels  nodes   cap  sort(ms)  knap(ms)  dijk(ms)  tsp(ms)  stops  route km
+      10     20    20     0.011     0.018     0.059    0.006      5        69
+      50     25   100     0.053     0.465     0.235    0.014     16       184
+     100     50   200     0.110     1.812     1.020    0.033     30       328
+     200    100   400     0.249     8.028     4.130    0.103     61       604
+     500    250  1000     0.773    54.908    29.154    0.733    145      1474
+    1000    500  2000     1.555   234.888   126.542    2.891    280      2544
+All correctness checks passed.
+
+Merge sort vs insertion sort (ms):
+  n=  100: merge=   0.120  insertion=    0.315
+  n=  500: merge=   0.708  insertion=    7.103
+  n= 1000: merge=   1.473  insertion=   28.670
+  n= 2000: merge=   3.380  insertion=  111.685
+
+Nearest-Neighbor vs optimal (8 stops, 5 random graphs):
+  graph 0: NN=95, optimal=83, ratio=1.145
+  graph 1: NN=100, optimal=91, ratio=1.099
+  graph 2: NN=78, optimal=78, ratio=1.000
+  graph 3: NN=100, optimal=92, ratio=1.087
+  graph 4: NN=83, optimal=81, ratio=1.025
+  average ratio = 1.071
+
+Saved runtime_chart.png
